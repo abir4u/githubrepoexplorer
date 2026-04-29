@@ -9,58 +9,88 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    @State private var viewModel = GitHubRepoViewModel()
+    
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-
+    @Query private var favorites: [FavoriteRepo]
+    
     var body: some View {
-        NavigationSplitView {
+        NavigationStack {
             List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+                Picker("Group By", selection: $viewModel.selectedGrouping) {
+                    ForEach(GitHubRepoViewModel.GroupingOption.allCases, id: \.self) { option in
+                        Text(option.rawValue).tag(option)
                     }
                 }
-                .onDelete(perform: deleteItems)
-            }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
+                .pickerStyle(.segmented)
+                .listRowBackground(Color.clear)
+                
+                ForEach(viewModel.groupKeys, id: \.self) { key in
+                    Section(header: Text(key)) {
+                        ForEach(viewModel.groupedRepositories[key] ?? []) { repo in
+                            NavigationLink(destination: GitHubRepDetailView(repo: repo)) {
+                                GitHubRepoRowView(
+                                    repo: repo,
+                                    isBookmarked: favorites.contains(where: { $0.id == repo.id }),
+                                    onBookmarkToggle: { toggleBookmark(repo) }
+                                )
+                            }
+                            .onAppear {
+                                if repo == viewModel.repositories.last {
+                                    Task { await viewModel.loadMoreContent() }
+                                }
+                            }
+                        }
+                    }
                 }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                
+                if viewModel.isLoading {
+                    HStack {
+                        Spacer()
+                        ProgressView("Fetching more...")
+                        Spacer()
+                    }
+                    .listRowBackground(Color.clear)
+                }
+            }
+            .navigationTitle("GitHub Explorer")
+            .overlay {
+                if let error = viewModel.errorMessage {
+                    ContentUnavailableView {
+                        Label("Error", systemImage: "exclamationmark.triangle")
+                    } description: {
+                        Text(error)
+                    } actions: {
+                        Button("Retry") {
+                            Task { await viewModel.loadMoreContent() }
+                        }
                     }
                 }
             }
-        } detail: {
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+            .task {
+                await viewModel.fetchInitialRepositories()
             }
+        }
+    }
+    
+    private func toggleBookmark(_ repo: Repository) {
+        if let existing = favorites.first(where: { $0.id == repo.id }) {
+            modelContext.delete(existing)
+        } else {
+            let fav = FavoriteRepo(
+                id: repo.id,
+                name: repo.name,
+                fullName: repo.fullName,
+                ownerLogin: repo.owner.login,
+                ownerAvatarUrl: repo.owner.avatarUrl,
+                repoDescription: repo.description
+            )
+            modelContext.insert(fav)
         }
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: FavoriteRepo.self, inMemory: true)
 }
