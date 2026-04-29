@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-struct ContentView: View {
+struct HomeView: View {
     @State private var viewModel = GitHubRepoViewModel()
     
     @Environment(\.modelContext) private var modelContext
@@ -26,7 +26,7 @@ struct ContentView: View {
                 .listRowBackground(Color.clear)
                 
                 ForEach(viewModel.groupKeys, id: \.self) { key in
-                    Section(header: Text(key)) {
+                    Section(header: Text(key).accessibilityIdentifier("SectionHeader-\(key)")) {
                         ForEach(viewModel.groupedRepositories[key] ?? []) { repo in
                             NavigationLink(destination: GitHubRepDetailView(repo: repo)) {
                                 GitHubRepoRowView(
@@ -90,7 +90,7 @@ struct ContentView: View {
     }
 }
 
-#Preview {
-    ContentView()
-        .modelContainer(for: FavoriteRepo.self, inMemory: true)
-}
+//#Preview {
+//    HomeView()
+//        .modelContainer(for: FavoriteRepo.self, inMemory: true)
+//}

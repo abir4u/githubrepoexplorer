@@ -12,7 +12,7 @@ import SwiftData
 struct GitHubRepoExplorerApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            HomeView()
         }
         .modelContainer(for: FavoriteRepo.self)
     }
