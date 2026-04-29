@@ -15,6 +15,8 @@ enum NetworkError: Error {
 }
 
 actor NetworkClient: RepositoryService {
+    private var languageCache: [String: [String: Int]] = [:]
+
     func fetchRepositories(urlString: String) async throws -> (repos: [Repository], nextUrl: String?) {
         guard let url = URL(string: urlString) else { throw NetworkError.invalidURL }
         
@@ -60,4 +62,16 @@ actor NetworkClient: RepositoryService {
         }
         return nil
     }
+
+    func fetchLanguages(url: String) async throws -> [String: Int] {
+        if let cached = languageCache[url] { return cached }
+        
+        guard let urlObj = URL(string: url) else { throw NetworkError.invalidURL }
+        let (data, _) = try await URLSession.shared.data(from: urlObj)
+        
+        let languages = try JSONDecoder().decode([String: Int].self, from: data)
+        languageCache[url] = languages
+        return languages
+    }
+
 }
