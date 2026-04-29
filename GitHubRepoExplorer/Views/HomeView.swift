@@ -10,68 +10,66 @@ import SwiftData
 
 struct HomeView: View {
     @State private var viewModel = GitHubRepoViewModel()
-    
     @Environment(\.modelContext) private var modelContext
     @Query private var favorites: [FavoriteRepo]
     
     var body: some View {
         NavigationStack {
             List {
-                Picker("Group By", selection: $viewModel.selectedGrouping) {
-                    ForEach(GitHubRepoViewModel.GroupingOption.allCases, id: \.self) { option in
-                        Text(option.rawValue).tag(option)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .listRowBackground(Color.clear)
+                RepoGroupingPicker(selection: $viewModel.selectedGrouping)
                 
-                ForEach(viewModel.groupKeys, id: \.self) { key in
-                    Section(header: Text(key).accessibilityIdentifier("SectionHeader-\(key)")) {
-                        ForEach(viewModel.groupedRepositories[key] ?? []) { repo in
-                            NavigationLink(destination: GitHubRepDetailView(repo: repo)) {
-                                GitHubRepoRowView(
-                                    repo: repo,
-                                    isBookmarked: favorites.contains(where: { $0.id == repo.id }),
-                                    onBookmarkToggle: { toggleBookmark(repo) }
-                                )
-                            }
-                            .onAppear {
-                                if repo == viewModel.repositories.last {
-                                    Task { await viewModel.loadMoreContent() }
-                                }
-                            }
-                        }
-                    }
-                }
+                repoSections
                 
                 if viewModel.isLoading {
-                    HStack {
-                        Spacer()
-                        ProgressView("Fetching more...")
-                        Spacer()
-                    }
-                    .listRowBackground(Color.clear)
+                    loadingFooter
                 }
             }
             .navigationTitle("GitHub Explorer")
-            .overlay {
-                if let error = viewModel.errorMessage {
-                    ContentUnavailableView {
-                        Label("Error", systemImage: "exclamationmark.triangle")
-                    } description: {
-                        Text(error)
-                    } actions: {
-                        Button("Retry") {
-                            Task { await viewModel.loadMoreContent() }
-                        }
-                    }
+            .overlay(errorOverlay)
+            .task { await viewModel.fetchInitialRepositories() }
+        }
+    }
+    
+    // MARK: - Subviews
+    
+    private var repoSections: some View {
+        ForEach(viewModel.groupKeys, id: \.self) { key in
+            RepoSection(
+                title: key,
+                repos: viewModel.groupedRepositories[key] ?? [],
+                isLastSection: key == viewModel.groupKeys.last,
+                favorites: favorites,
+                onBookmarkToggle: toggleBookmark,
+                onLoadMore: { Task { await viewModel.loadMoreContent() } }
+            )
+        }
+    }
+    
+    private var loadingFooter: some View {
+        HStack {
+            Spacer()
+            ProgressView("Fetching more...")
+            Spacer()
+        }
+        .listRowBackground(Color.clear)
+    }
+    
+    @ViewBuilder
+    private var errorOverlay: some View {
+        if let error = viewModel.errorMessage {
+            ContentUnavailableView {
+                Label("Error", systemImage: "exclamationmark.triangle")
+            } description: {
+                Text(error)
+            } actions: {
+                Button("Retry") {
+                    Task { await viewModel.loadMoreContent() }
                 }
-            }
-            .task {
-                await viewModel.fetchInitialRepositories()
             }
         }
     }
+    
+    // MARK: - Actions
     
     private func toggleBookmark(_ repo: Repository) {
         if let existing = favorites.first(where: { $0.id == repo.id }) {
@@ -90,7 +88,7 @@ struct HomeView: View {
     }
 }
 
-//#Preview {
-//    HomeView()
-//        .modelContainer(for: FavoriteRepo.self, inMemory: true)
-//}
+#Preview {
+    HomeView()
+        .modelContainer(for: FavoriteRepo.self, inMemory: true)
+}
