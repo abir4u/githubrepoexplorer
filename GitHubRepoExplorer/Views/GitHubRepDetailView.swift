@@ -15,31 +15,34 @@ struct GitHubRepDetailView: View {
     
     var body: some View {
         List {
-            Section("About") {
-                Text(repo.description ?? "No description available")
-            }
+            RepoAboutSection(description: repo.description)
             
             Section("Languages") {
                 if isLoading {
                     ProgressView()
+                        .frame(maxWidth: .infinity, alignment: .center)
                 } else if languages.isEmpty {
-                    Text("No language data")
+                    ContentUnavailableView("No Data", systemImage: "slash.circle", description: Text("No language data found."))
                 } else {
-                    ForEach(languages.sorted(by: { $0.value > $1.value }), id: \.key) { key, value in
-                        HStack {
-                            Text(key)
-                            Spacer()
-                            Text("\(value) bytes").foregroundStyle(.secondary)
-                        }
-                    }
+                    languageList
                 }
             }
         }
         .navigationTitle(repo.name)
-        .task {
-            isLoading = true
-            languages = (try? await service.fetchLanguages(url: repo.languagesUrl)) ?? [:]
-            isLoading = false
+        .navigationBarTitleDisplayMode(.inline)
+        .task { await loadLanguages() }
+    }
+    
+    private var languageList: some View {
+        ForEach(languages.sorted(by: { $0.value > $1.value }), id: \.key) { key, value in
+            LanguageRow(name: key, bytes: value)
         }
+    }
+    
+    @Sendable
+    private func loadLanguages() async {
+        isLoading = true
+        languages = (try? await service.fetchLanguages(url: repo.languagesUrl)) ?? [:]
+        isLoading = false
     }
 }
