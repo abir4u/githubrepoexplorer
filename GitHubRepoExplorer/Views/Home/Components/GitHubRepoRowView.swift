@@ -14,7 +14,6 @@ struct GitHubRepoRowView: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Async Image for Avatar
             AsyncImage(url: URL(string: repo.owner.avatarUrl)) { image in
                 image.resizable().scaledToFill()
             } placeholder: {
@@ -46,7 +45,6 @@ struct GitHubRepoRowView: View {
             
             Spacer()
             
-            // Bookmark Button
             Button(action: onBookmarkToggle) {
                 Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
                     .foregroundStyle(isBookmarked ? .yellow : .gray)
