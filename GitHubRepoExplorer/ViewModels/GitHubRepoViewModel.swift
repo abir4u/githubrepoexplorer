@@ -36,7 +36,6 @@ class GitHubRepoViewModel {
         }
     }
     
-    // Sorted keys so the list sections don't jump around
     var groupKeys: [String] {
         groupedRepositories.keys.sorted()
     }
