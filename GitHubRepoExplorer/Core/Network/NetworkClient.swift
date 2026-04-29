@@ -14,7 +14,7 @@ enum NetworkError: Error {
     case serverError(Int)
 }
 
-actor NetworkClient {
+actor NetworkClient: RepositoryService {
     func fetchRepositories(urlString: String) async throws -> (repos: [Repository], nextUrl: String?) {
         guard let url = URL(string: urlString) else { throw NetworkError.invalidURL }
         
