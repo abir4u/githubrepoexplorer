@@ -14,7 +14,7 @@ class GitHubRepoViewModel {
     var isLoading = false
     var errorMessage: String?
     
-    private var nextUrl: String? = "https://github.com"
+    private var nextUrl: String? = "https://api.github.com/repositories"
     private let service: RepositoryService
     
     enum GroupingOption: String, CaseIterable {
