@@ -62,16 +62,31 @@ actor NetworkClient: RepositoryService {
         }
         return nil
     }
-
+    
     func fetchLanguages(url: String) async throws -> [String: Int] {
         if let cached = languageCache[url] { return cached }
         
         guard let urlObj = URL(string: url) else { throw NetworkError.invalidURL }
-        let (data, _) = try await URLSession.shared.data(from: urlObj)
+        let (data, response) = try await URLSession.shared.data(from: urlObj)
         
-        let languages = try JSONDecoder().decode([String: Int].self, from: data)
-        languageCache[url] = languages
-        return languages
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw NetworkError.serverError(0)
+        }
+        
+        if httpResponse.statusCode == 403 {
+            throw NetworkError.rateLimitExceeded
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            throw NetworkError.serverError(httpResponse.statusCode)
+        }
+        
+        do {
+            let languages = try JSONDecoder().decode([String: Int].self, from: data)
+            languageCache[url] = languages
+            return languages
+        } catch {
+            throw NetworkError.decodingError
+        }
     }
-
 }
