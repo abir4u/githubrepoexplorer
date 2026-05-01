@@ -36,17 +36,14 @@ actor NetworkClient: RepositoryService {
         
         do {
             let repos = try JSONDecoder().decode([Repository].self, from: data)
-            let nextUrl = parseNextPageUrl(from: httpResponse)
+            let nextUrl = parseNextPageUrl(from: httpResponse.value(forHTTPHeaderField: "Link") ?? "")
             return (repos, nextUrl)
         } catch {
             throw NetworkError.decodingError
         }
     }
     
-    private func parseNextPageUrl(from response: HTTPURLResponse) -> String? {
-        guard let linkHeader = response.value(forHTTPHeaderField: "Link") else { return nil }
-        
-        // Example header: <https://github.com>; rel="next", <https://github.com{?since}>; rel="first"
+    nonisolated func parseNextPageUrl(from linkHeader: String) -> String? {
         let links = linkHeader.components(separatedBy: ",")
         
         for link in links {
@@ -54,7 +51,8 @@ actor NetworkClient: RepositoryService {
             guard segments.count > 1 else { continue }
             
             let urlPart = segments[0].trimmingCharacters(in: CharacterSet(charactersIn: "<> "))
-            let relPart = segments[1].trimmingCharacters(in: .whitespaces)
+            
+            let relPart = segments[1].replacingOccurrences(of: " ", with: "")
             
             if relPart == "rel=\"next\"" {
                 return urlPart

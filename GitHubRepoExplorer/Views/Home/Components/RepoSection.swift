@@ -18,7 +18,7 @@ struct RepoSection: View {
     var body: some View {
         Section(header: Text(title).accessibilityIdentifier("SectionHeader-\(title)")) {
             ForEach(repos) { repo in
-                NavigationLink(destination: GitHubRepDetailView(repo: repo)) {
+                NavigationLink(destination: GitHubRepoDetailView(repo: repo)) {
                     GitHubRepoRowView(
                         repo: repo,
                         isBookmarked: favoritesId.contains(repo.id),

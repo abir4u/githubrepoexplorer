@@ -6,17 +6,27 @@
 //
 
 import Foundation
-@testable import GitHubRepoExplorer // Replace with your actual project name
+@testable import GitHubRepoExplorer
 
 actor MockRepositoryService: RepositoryService {
     var mockRepos: [Repository] = []
     var shouldFail = false
+    var shouldFailLanguages = false
     var nextUrlToReturn: String? = nil
+    var mockLanguages: [String: Int] = [:]
     
-    func setupMockData(repos: [Repository], shouldFail: Bool = false, nextUrl: String? = nil) {
+    func setupMockData(
+        repos: [Repository],
+        shouldFail: Bool = false,
+        shouldFailLanguages: Bool = false,
+        nextUrl: String? = nil,
+        languages: [String: Int] = [:]
+    ) {
         self.mockRepos = repos
         self.shouldFail = shouldFail
+        self.shouldFailLanguages = shouldFailLanguages
         self.nextUrlToReturn = nextUrl
+        self.mockLanguages = languages
     }
 
     func fetchRepositories(urlString: String) async throws -> (repos: [Repository], nextUrl: String?) {
@@ -27,6 +37,9 @@ actor MockRepositoryService: RepositoryService {
     }
 
     func fetchLanguages(url: String) async throws -> [String: Int] {
-        return ["Swift": 1000]
+        if shouldFailLanguages {
+            throw NetworkError.serverError(500)
+        }
+        return mockLanguages
     }
 }

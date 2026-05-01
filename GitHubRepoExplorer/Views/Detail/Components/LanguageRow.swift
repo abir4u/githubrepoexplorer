@@ -11,6 +11,10 @@ struct LanguageRow: View {
     let name: String
     let bytes: Int
     
+    private var formattedBytes: String {
+        bytes.formatted(.number)
+    }
+    
     var body: some View {
         HStack {
             Text(name)
@@ -19,5 +23,7 @@ struct LanguageRow: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(name), \(formattedBytes) bytes")
     }
 }
