@@ -70,4 +70,4 @@ The app supports two distinct UI testing modes:
    Select a simulator and press `Cmd + R`.
 
 ---
-*Created by [Abir](https://github.com)*
+*Created by [Abir](https://github.com/abir4u)*
