@@ -10,6 +10,16 @@ import SwiftData
 
 @main
 struct GitHubRepoExplorerApp: App {
+    let service: RepositoryService
+
+    init() {
+        if ProcessInfo.processInfo.arguments.contains("-UseMockData") {
+            self.service = MockRepositoryService()
+        } else {
+            self.service = NetworkClient()
+        }
+    }
+    
     var body: some Scene {
         WindowGroup {
             HomeView()

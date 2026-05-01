@@ -28,8 +28,8 @@ final class GitHubRepoExplorerUITests: XCTestCase {
         
         assertElementExists(app: app, identifier: "SectionHeader-Forks")
 
-        let originalHeader = app.descendants(matching: .any).element(matching: NSPredicate(format: "label CONTAINS[c] 'Original'"))
-        XCTAssertTrue(originalHeader.waitForExistence(timeout: 5), "The 'Original' section header should appear after grouping.")
+        let originalHeader = app.descendants(matching: .any).element(matching: NSPredicate(format: "label CONTAINS[c] 'Forks'"))
+        XCTAssertTrue(originalHeader.waitForExistence(timeout: 5), "The 'Forks' section header should appear after grouping.")
 
         firstRow.tap()
         
