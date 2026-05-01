@@ -16,13 +16,7 @@ class GitHubRepoViewModel {
     
     private var nextUrl: String? = "https://api.github.com/repositories"
     private let service: RepositoryService
-    
-    enum GroupingOption: String, CaseIterable {
-        case none = "None"
-        case ownerType = "Owner Type"
-        case forkStatus = "Fork Status"
-    }
-    
+        
     var selectedGrouping: GroupingOption = .none
     
     var groupedRepositories: [String: [Repository]] {

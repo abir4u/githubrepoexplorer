@@ -11,7 +11,7 @@ struct RepoSection: View {
     let title: String
     let repos: [Repository]
     let isLastSection: Bool
-    let favorites: [FavoriteRepo]
+    let favoritesId: Set<Int>
     let onBookmarkToggle: (Repository) -> Void
     let onLoadMore: () -> Void
 
@@ -21,7 +21,7 @@ struct RepoSection: View {
                 NavigationLink(destination: GitHubRepDetailView(repo: repo)) {
                     GitHubRepoRowView(
                         repo: repo,
-                        isBookmarked: favorites.contains(where: { $0.id == repo.id }),
+                        isBookmarked: favoritesId.contains(repo.id),
                         onBookmarkToggle: { onBookmarkToggle(repo) }
                     )
                 }

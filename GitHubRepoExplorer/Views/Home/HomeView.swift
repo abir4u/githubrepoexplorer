@@ -38,7 +38,7 @@ struct HomeView: View {
                 title: key,
                 repos: viewModel.groupedRepositories[key] ?? [],
                 isLastSection: key == viewModel.groupKeys.last,
-                favorites: favorites,
+                favoritesId: Set(favorites.map { $0.id }),
                 onBookmarkToggle: toggleBookmark,
                 onLoadMore: { Task { await viewModel.loadMoreContent() } }
             )

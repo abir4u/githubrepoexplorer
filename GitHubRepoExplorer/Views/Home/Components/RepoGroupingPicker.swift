@@ -8,11 +8,11 @@
 import SwiftUI
 
 struct RepoGroupingPicker: View {
-    @Binding var selection: GitHubRepoViewModel.GroupingOption
+    @Binding var selection: GroupingOption
     
     var body: some View {
         Picker("Group By", selection: $selection) {
-            ForEach(GitHubRepoViewModel.GroupingOption.allCases, id: \.self) { option in
+            ForEach(GroupingOption.allCases) { option in
                 Text(option.rawValue).tag(option)
             }
         }
