@@ -10,7 +10,7 @@ import SwiftData
 
 @Model
 final class FavoriteRepo {
-    @Attribute(.unique) var id: Int // Use GitHub's unique repo ID
+    @Attribute(.unique) var id: Int
     var name: String
     var fullName: String
     var ownerLogin: String

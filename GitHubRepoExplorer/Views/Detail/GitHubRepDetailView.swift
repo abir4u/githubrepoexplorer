@@ -11,7 +11,12 @@ struct GitHubRepDetailView: View {
     let repo: Repository
     @State private var languages: [String: Int] = [:]
     @State private var isLoading = false
-    let service: RepositoryService = NetworkClient()
+    private let service: RepositoryService
+    
+    init(repo: Repository, service: RepositoryService = NetworkClient()) {
+        self.repo = repo
+        self.service = service
+    }
     
     var body: some View {
         List {
