@@ -55,18 +55,18 @@ class GitHubRepoViewModel {
         guard !isLoading, let url = nextUrl else { return }
         
         isLoading = true
+        defer { isLoading = false }
+        
         errorMessage = nil
         
         do {
             let (newRepos, next) = try await service.fetchRepositories(urlString: url)
             self.repositories.append(contentsOf: newRepos)
             self.nextUrl = next
-            self.isLoading = false
         } catch let error as NetworkError {
             handleError(error)
         } catch {
             self.errorMessage = "An unexpected error occurred."
-            self.isLoading = false
         }
     }
     
